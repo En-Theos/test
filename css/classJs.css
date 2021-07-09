@@ -1,0 +1,18 @@
+.tabcontent {
+    display: none;
+}
+
+.activeTab {
+    display: block;
+    animation-name: opacity;
+    animation-duration: 1s;
+}
+
+@keyframes opacity {
+    from {
+        opacity: 0.1;
+    }
+    to {
+        opacity: 1;
+    }
+}
