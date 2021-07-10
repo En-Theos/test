@@ -30,6 +30,7 @@ function setTimer(endTime, parentTimer) {
           minutesBox = parentTimer.querySelector("#minutes"),
           secondsBox = parentTimer.querySelector("#seconds");
     
+    const timerInterwal = setInterval(renewalTimer, 1000);
     function renewalTimer() {
         restTime = Date.parse(endTime) - new Date();
         const days = Math.round(restTime / (1000 * 60 * 60 * 24)),
@@ -44,7 +45,6 @@ function setTimer(endTime, parentTimer) {
     }
     renewalTimer();
 
-    const timerInterwal = setInterval(renewalTimer, 1000);
     if (restTime <= 0) {
         clearInterval(timerInterwal);
     }
@@ -58,3 +58,45 @@ function setTimer(endTime, parentTimer) {
     }
 }
 setTimer(deadline, timer);
+
+// Модальное окно
+
+const modal = document.querySelector(".modal");
+const btnOpenModal = document.querySelectorAll("[data-modal]"),
+      btnCloseModal = document.querySelector("[data-close]");
+const timerOpenModal = setTimeout(codeShow, 5000);
+
+
+function codeShow() {
+    clearTimeout(timerOpenModal);
+    modal.style.display = 'block';
+    document.body.style.overflow = "hidden";
+}
+
+function codeHiden() {
+    modal.style.display = 'none';
+    document.body.style.overflow = "";
+}
+
+btnOpenModal.forEach(btn => btn.addEventListener('click', codeShow));
+btnCloseModal.addEventListener('click', codeHiden);
+
+modal.addEventListener('click', (event) => {
+    if (event.target && event.target == modal) {
+        codeHiden();
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+   console.log(event);
+});
+
+window.addEventListener('scroll', function scrollOpenModal ()  {
+    const scrollFull = document.documentElement.scrollHeight - 1;
+    const scrollDo = document.documentElement.clientHeight + document.documentElement.scrollTop;
+
+    if (scrollFull <= scrollDo) {
+        codeShow();
+        window.removeEventListener('scroll', scrollOpenModal);
+    }
+});
