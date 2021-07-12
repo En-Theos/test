@@ -16,3 +16,8 @@
         opacity: 1;
     }
 }
+
+.messageText {
+    display: block;
+    margin: 3px auto;
+}
