@@ -1,3 +1,5 @@
+const { throws } = require("assert");
+
 const btnTabs = document.querySelectorAll('.tabheader__item'),
       parentBtnTabs = document.querySelector('.tabheader__items'),
       contentTabs = document.querySelectorAll('.tabcontent');
@@ -66,13 +68,11 @@ setTimer(deadline, timer);
 // Модальное окно
 
 const modal = document.querySelector(".modal");
-const btnOpenModal = document.querySelectorAll("[data-modal]"),
-      btnCloseModal = document.querySelector("[data-close]");
-//const timerOpenModal = setTimeout(codeShow, 5000);
-
+const btnOpenModal = document.querySelectorAll("[data-modal]");
+const timerOpenModal = setTimeout(codeShow, 60000);
 
 function codeShow() {
-    //clearTimeout(timerOpenModal);
+    clearTimeout(timerOpenModal);
     modal.style.display = 'block';
     document.body.style.overflow = "hidden";
 }
@@ -83,10 +83,9 @@ function codeHiden() {
 }
 
 btnOpenModal.forEach(btn => btn.addEventListener('click', codeShow));
-btnCloseModal.addEventListener('click', codeHiden);
 
 modal.addEventListener('click', (event) => {
-    if (event.target && event.target == modal) {
+    if (event.target && event.target == modal || event.target.getAttribute("data-close") == "") {
         codeHiden();
     }
 });
@@ -112,9 +111,9 @@ window.addEventListener('scroll', function scrollOpenModal ()  {
 const containerCardMenu = document.querySelector(".menu__field .container");
 
 class CardMenu {
-    constructor(src, alt, title, descr, price) {
-        this.src = src;
-        this.alt = alt;
+    constructor({img, altimg, title, descr, price}) {
+        this.img = img;
+        this.altimg = altimg;
         this.title = title;
         this.descr = descr;
         this.price = price;
@@ -131,7 +130,7 @@ class CardMenu {
         div.classList.add("menu__item");
         
         div.innerHTML = `
-            <img src="${this.src}" alt="${this.alt}">
+            <img src="${this.img}" alt="${this.altimg}">
             <h3 class="menu__item-subtitle">${this.title}</h3>
             <div class="menu__item-descr">${this.descr}</div>
             <div class="menu__item-divider"></div>
@@ -145,29 +144,20 @@ class CardMenu {
     }
 }
 
-new CardMenu(
-    "img/tabs/vegy.jpg", 
-    "vegy", 
-    'Меню "Фитнес"', 
-    'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-    229
-).generatorCardMenu();
+async function getDataDB(url) {
+    const data = await fetch(url);
 
-new CardMenu(
-    "img/tabs/elite.jpg", 
-    "elite", 
-    'Меню “Премиум”', 
-    'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-    550
-).generatorCardMenu();  
-                            
-new CardMenu(
-    "img/tabs/post.jpg", 
-    "post", 
-    'Меню "Постное"', 
-    'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков. ',
-    430
-).generatorCardMenu();
+    if (!data.ok) { 
+        throw new Error(`Cloud not fetch  ${url}, status: ${data.status}`);
+    }
+
+    return data.json();
+}
+
+getDataDB("http://localhost:3000/menu")
+    .then((data) => {
+        data.forEach((item) => new CardMenu(item).generatorCardMenu());
+    });
 
 // Отправка данных форм
 
@@ -175,37 +165,67 @@ const forms = document.querySelectorAll("form");
 
 const message = {
     success: 'Успешно отправлено',
-    load: 'Загрузка',
+    load: 'img/spinner.svg',
     failed: 'Ошибка отправки'
 };
+
+async function postData (urlDB, header, body) {
+    const res = await fetch(urlDB, {
+        method: "POST",
+        headers: {
+            "Content-type": header
+        },
+        body: body
+    });
+
+    return res.json();
+}
 
 forms.forEach(form => {
     form.addEventListener('submit', (event) => {
         event.preventDefault();
 
-        const mesageBox = document.createElement("div");
-        mesageBox.classList.add("messageText");
-        mesageBox.textContent = message.load;
-        form.append(mesageBox);
+        const loadBox = document.createElement("img");
+        loadBox.classList.add("messageText");
+        loadBox.src = message.load;
+        form.insertAdjacentElement("afterend", loadBox);
 
         const formData = new FormData(form);
         const postJSON = {};
         formData.forEach((value, key) => postJSON[key] = value);
-
-        const request = new XMLHttpRequest();
-        request.open('POST', 'server.php');
-        request.setRequestHeader("Content-type", "application/json");
-        request.send(JSON.stringify(postJSON));
-
-        request.addEventListener('load', () => {
-            if (request.status == 200) {
-                mesageBox.textContent = message.success;
-                setTimeout(() => mesageBox.remove(), 2000);
-                form.reset();
-            } else {
-                mesageBox.textContent = message.failed;
-                setTimeout(() => mesageBox.remove(), 2000);
-            }
+        postData('http://localhost:3000/requests', "application/json", JSON.stringify(postJSON))
+        .then((res) => {
+            console.log(res);
+            statusModal(message.success);
+        }).catch(() => {
+            statusModal(message.failed);
+        }).finally(() => {
+            loadBox.remove();
+            form.reset();
         });
     });
 });
+
+function statusModal(messageText) {
+    codeShow();
+    const contentRepit = document.querySelector(".modal__dialog");
+    contentRepit.style.display = "none";
+
+    const messageRepit = document.createElement("div");
+    messageRepit.classList.add("modal__dialog");
+    messageRepit.innerHTML = `
+        <div class="modal__content">
+            <form action="#">
+                <div data-close class="modal__close">&times;</div>
+                <div class="modal__title">${messageText}</div>
+            </form>
+        </div>
+    `;
+    modal.append(messageRepit);
+
+    setTimeout(() => {
+        messageRepit.remove();
+        contentRepit.style.display = "block";
+        codeHiden();
+    }, 3000);
+}
