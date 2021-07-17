@@ -1,5 +1,3 @@
-const { throws } = require("assert");
-
 const btnTabs = document.querySelectorAll('.tabheader__item'),
       parentBtnTabs = document.querySelector('.tabheader__items'),
       contentTabs = document.querySelectorAll('.tabcontent');
@@ -21,7 +19,7 @@ parentBtnTabs.addEventListener('click', (event) => {
 
 // Таймер
 
-const deadline = "2021-07-13";
+const deadline = "2021-07-20";
 const timer = document.querySelector('.timer');
 
 function setTimer(endTime, parentTimer) {
@@ -54,16 +52,16 @@ function setTimer(endTime, parentTimer) {
         minutesBox.textContent = "00";
         secondsBox.textContent = "00";
     }
-
-    function getZero(number) {
-        if (number < 10) {
-            return `0${number}`;
-        } else {
-            return number;
-        }
-    }
 }
 setTimer(deadline, timer);
+
+function getZero(number) {
+    if (number < 10) {
+        return `0${number}`;
+    } else {
+        return number;
+    }
+}
 
 // Модальное окно
 
@@ -71,10 +69,21 @@ const modal = document.querySelector(".modal");
 const btnOpenModal = document.querySelectorAll("[data-modal]");
 const timerOpenModal = setTimeout(codeShow, 60000);
 
+function scrollOpenModal ()  {
+    const scrollFull = document.documentElement.scrollHeight - 1;
+    const scrollDo = document.documentElement.clientHeight + document.documentElement.scrollTop;
+
+    if (scrollFull <= scrollDo) {
+        codeShow();
+        window.removeEventListener('scroll', scrollOpenModal);
+    }
+}
+
 function codeShow() {
     clearTimeout(timerOpenModal);
     modal.style.display = 'block';
     document.body.style.overflow = "hidden";
+    window.removeEventListener('scroll', scrollOpenModal);
 }
 
 function codeHiden() {
@@ -96,15 +105,7 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-window.addEventListener('scroll', function scrollOpenModal ()  {
-    const scrollFull = document.documentElement.scrollHeight - 1;
-    const scrollDo = document.documentElement.clientHeight + document.documentElement.scrollTop;
-
-    if (scrollFull <= scrollDo) {
-        codeShow();
-        window.removeEventListener('scroll', scrollOpenModal);
-    }
-});
+window.addEventListener('scroll', scrollOpenModal);
 
 // Динамическая генерация карточок на сайте
 
@@ -228,4 +229,170 @@ function statusModal(messageText) {
         contentRepit.style.display = "block";
         codeHiden();
     }, 3000);
+}
+
+// Слайдер
+const windowSlide = document.querySelector(".offer__slider-wrapper"),
+      tapeSlide = windowSlide.querySelector(".tapeSlide"),
+      slides = tapeSlide.querySelectorAll(".offer__slide");
+const btnSliderPrew = document.querySelector(".offer__slider-prev"),
+      btnSliderNext = document.querySelector(".offer__slider-next");
+const current = document.querySelector(".offer__slider-counter #current"),
+      total = document.querySelector(".offer__slider-counter #total");
+
+const widthSlide = +window.getComputedStyle(windowSlide).width.match(/\d+/g);
+tapeSlide.style.width = widthSlide * slides.length + "px";
+     
+total.textContent = getZero(slides.length);
+let auxiСurrent = 0;
+const maxAuxiСurrent = slides.length - 1;
+let bias = 0;
+const maxBias = widthSlide * (slides.length - 1);
+
+const arrBtnNav = [];
+
+for (const item of slides) {
+    arrBtnNav.push(document.createElement("div"));
+    arrBtnNav.forEach(btn => {
+        btn.classList.add("navBtn");
+        document.querySelector(".navigationSlider").append(btn);
+    });
+}
+
+arrBtnNav.forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+        auxiСurrent = 0; 
+        bias = 0;
+        switchingSlide(i);
+    });
+});
+arrBtnNav[0].classList.add("activeNavBtn");
+
+function switchingSlide(n) {
+    auxiСurrent += n;
+    bias = widthSlide * auxiСurrent;
+    
+    if (auxiСurrent > maxAuxiСurrent) {
+        auxiСurrent = 0; 
+        bias = 0;
+    } 
+    if (auxiСurrent < 0) {
+        auxiСurrent = maxAuxiСurrent; 
+        bias = maxBias;
+    }
+
+    arrBtnNav.forEach(b => b.classList.remove("activeNavBtn"));
+    arrBtnNav[auxiСurrent].classList.add("activeNavBtn");
+    current.textContent = getZero(auxiСurrent + 1);
+    tapeSlide.style.transform = `translateX(-${bias}px)`;
+}
+
+btnSliderNext.addEventListener('click', () => switchingSlide(1));
+btnSliderPrew.addEventListener('click', () =>  switchingSlide(-1));
+
+// Калькулятор калорий
+const peopleData = {};
+
+function collectionData() {
+    const genderBtn = document.querySelectorAll("#gender .calculating__choose-item");
+    genderBtn.forEach(btn => {
+        btn.addEventListener('click', () => {
+            peopleData.gender = btn.id;
+            genderBtn.forEach(b => b.classList.remove("calculating__choose-item_active"));
+            btn.classList.add("calculating__choose-item_active");
+            еstablishingLocalSettings();
+            calculationCalories(peopleData);
+        });
+    });
+    document.querySelector(".calculating__choose_medium").addEventListener('input', (event) => {
+        switch (event.target.id) {
+            case "height":
+                peopleData.height = correctness(event.target);
+                break;
+            case "weight":
+                peopleData.weight = correctness(event.target);
+                break;
+            case "age":
+                peopleData.age = correctness(event.target);
+                break;
+        }
+        calculationCalories(peopleData);
+    });
+    function correctness(elem) {
+        if (+elem.value) {
+            elem.style.border = "solid 1px lawngreen";
+            return +elem.value;
+        } else if (elem.value == "") {
+            elem.style.border = "none";
+        } else {
+            elem.style.border = "solid 1px red";
+        }
+    }
+    document.querySelector(".calculating__choose_big").addEventListener('click', (event) => {
+        document.querySelectorAll(".calculating__choose_big .calculating__choose-item").forEach(item => item.classList.remove("calculating__choose-item_active"));
+        if (event.target.classList.contains("calculating__choose-item")) {
+            switch (event.target.getAttribute("data-Coefficient")) {
+                case "1.2":
+                    peopleData.activity = 1.2;
+                    event.target.classList.add("calculating__choose-item_active");
+                    break;
+                case "1.375":
+                    peopleData.activity = 1.375;
+                    event.target.classList.add("calculating__choose-item_active");
+                    break;
+                case "1.55":
+                    peopleData.activity = 1.55;
+                    event.target.classList.add("calculating__choose-item_active");
+                    break;
+                case "1.725":
+                    peopleData.activity = 1.725;
+                    event.target.classList.add("calculating__choose-item_active");
+                    break;
+            }
+        } else {
+            peopleData.activity = 0;
+        }
+        еstablishingLocalSettings();
+        calculationCalories(peopleData);
+    });
+}
+collectionData();
+
+function еstablishingLocalSettings() {
+    localStorage.setItem("gender", peopleData.gender);
+    localStorage.setItem("activity", peopleData.activity);
+}
+
+function applyingLocalSettings(selector) {
+    peopleData.gender = localStorage.getItem("gender") || "female";
+    peopleData.activity = +localStorage.getItem("activity") || 1.375;
+
+    const element = document.querySelectorAll(selector); 
+    element.forEach(item => {
+        if (item.getAttribute("data-Coefficient") == peopleData.activity) {
+            item.classList.add("calculating__choose-item_active");
+        }
+        if (item.id == peopleData.gender) {
+            item.classList.add("calculating__choose-item_active");
+        }
+    });
+}
+applyingLocalSettings(".calculating__choose_big .calculating__choose-item");
+applyingLocalSettings("#gender .calculating__choose-item");
+
+function calculationCalories({gender, height, weight, age, activity}) {
+    let result;
+    if (gender && height && weight && age && activity) {
+        switch (gender) {
+            case "female":
+                result = Math.round((447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age)) * activity);
+                break;
+            case "male":
+                result = Math.round((88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age)) * activity);
+                break;
+        }
+        document.querySelector(".calculating__result").innerHTML = `<span>${result}</span> ккал`; 
+    } else {
+        document.querySelector(".calculating__result").innerHTML = `Введите все данные`; 
+    }
 }
