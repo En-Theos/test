@@ -1,4 +1,4 @@
-export default function slider() {
+export default function slider(getZero) {
     const windowSlide = document.querySelector(".offer__slider-wrapper"),
         tapeSlide = windowSlide.querySelector(".tapeSlide"),
         slides = tapeSlide.querySelectorAll(".offer__slide");
@@ -10,7 +10,7 @@ export default function slider() {
     const widthSlide = +window.getComputedStyle(windowSlide).width.match(/\d+/g);
     tapeSlide.style.width = widthSlide * slides.length + "px";
 
-    total.textContent = slides.length;
+    total.textContent = getZero(slides.length);
     let auxiСurrent = 0;
     const maxAuxiСurrent = slides.length - 1;
     let bias = 0;
@@ -50,7 +50,7 @@ export default function slider() {
 
         arrBtnNav.forEach(b => b.classList.remove("activeNavBtn"));
         arrBtnNav[auxiСurrent].classList.add("activeNavBtn");
-        current.textContent = auxiСurrent + 1;
+        current.textContent = getZero(auxiСurrent + 1);
         tapeSlide.style.transform = `translateX(-${bias}px)`;
     }
 

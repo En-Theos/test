@@ -1,4 +1,5 @@
-export default function formFun() {
+
+export default function formFun(codeShow, codeHiden, postData) {
     const forms = document.querySelectorAll("form");
     const modal = document.querySelector(".modal");
 
@@ -7,18 +8,6 @@ export default function formFun() {
         load: 'img/spinner.svg',
         failed: 'Ошибка отправки'
     };
-
-    async function postData(urlDB, header, body) {
-        const res = await fetch(urlDB, {
-            method: "POST",
-            headers: {
-                "Content-type": header
-            },
-            body: body
-        });
-
-        return res.json();
-    }
 
     forms.forEach(form => {
         form.addEventListener('submit', (event) => {
@@ -45,7 +34,7 @@ export default function formFun() {
     });
 
     function statusModal(messageText) {
-        codeShow();
+        codeShow(".modal");
         const contentRepit = document.querySelector(".modal__dialog");
         contentRepit.style.display = "none";
 
@@ -64,7 +53,7 @@ export default function formFun() {
         setTimeout(() => {
             messageRepit.remove();
             contentRepit.style.display = "block";
-            codeHiden();
+            codeHiden(".modal");
         }, 3000);
     }
 }

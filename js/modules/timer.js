@@ -1,5 +1,5 @@
-export default function timerFun() {
-    const deadline = "2021-07-20";
+export default function timerFun(getZero) {
+    const deadline = "2021-07-24";
     const timer = document.querySelector('.timer');
 
     function setTimer(endTime, parentTimer) {
@@ -34,12 +34,4 @@ export default function timerFun() {
         }
     }
     setTimer(deadline, timer);
-
-    function getZero(number) {
-        if (number < 10) {
-            return `0${number}`;
-        } else {
-            return number;
-        }
-    }
 }

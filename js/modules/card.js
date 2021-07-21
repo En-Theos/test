@@ -1,4 +1,4 @@
-export default function card() {
+export default function card(getDataDB) {
     const containerCardMenu = document.querySelector(".menu__field .container");
 
     class CardMenu {
@@ -33,16 +33,6 @@ export default function card() {
 
             containerCardMenu.append(div);
         }
-    }
-
-    async function getDataDB(url) {
-        const data = await fetch(url);
-
-        if (!data.ok) {
-            throw new Error(`Cloud not fetch  ${url}, status: ${data.status}`);
-        }
-
-        return data.json();
     }
 
     getDataDB("http://localhost:3000/menu")
